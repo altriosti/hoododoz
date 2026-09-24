@@ -12,10 +12,12 @@
     "function ownerOf(uint256) view returns (address)",
     "function totalWeight() view returns (uint256)",
     "function burned() view returns (uint256)",
+    "function lastMintBlock() view returns (uint256)",
     "function stake(uint256[],uint256)", "function unstake(uint256[])", "function claim(uint256[]) returns (uint256)", "function burn(uint256)",
     "event Mined(address indexed miner,uint256 indexed tokenId,uint256 artIndex,uint256 price,bytes32 work)",
     "error WeakHash()", "error BadBlock()", "error Underpaid()", "error SoldOut()", "error NotStarted()", "error MintPaused()",
-    "error OneMintPerBlock()", "error IsStaked()", "error StillLocked()", "error BurnNotOpen()", "error TooYoung()", "error NotOwner()"
+    "error OneMintPerBlock()", "error IsStaked()", "error StillLocked()", "error BurnNotOpen()", "error TooYoung()", "error NotOwner()",
+    "error AlreadyStarted()", "error BadTerm()", "error NotStaked()", "error TransferFailed()", "error ZeroAddress()", "error ReentrancyGuardReentrantCall()"
   ];
   const TOKEN_ABI = ["function totalSupply() view returns (uint256)", "function balanceOf(address) view returns (uint256)"];
   const BB_ABI = ["function totalBurned() view returns (uint256)", "function run() returns (uint256)"];
@@ -28,6 +30,12 @@
   const bb = cfg.buyback && E.isAddress(cfg.buyback) ? new E.Contract(cfg.buyback, BB_ABI, rp) : null;
   const hook = cfg.hook && E.isAddress(cfg.hook) ? new E.Contract(cfg.hook, HOOK_ABI, rp) : null;
 
+  const BLOCK_PROBE = "0x4360019003804060205260005260406000f3";
+  async function chainBlock() {
+    const raw = await rp.call({ data: BLOCK_PROBE });
+    const [bn, hash] = E.AbiCoder.defaultAbiCoder().decode(["uint256", "bytes32"], raw);
+    return { n: Number(bn) + 1, bn: Number(bn), hash };
+  }
   const eth = (w, d = 4) => Number(E.formatEther(w)).toFixed(d);
   const fmtH = (n) => { const u = ["", "K", "M", "G", "T"]; let i = 0; while (n >= 1000 && i < 4) { n /= 1000; i++; } return (n < 10 ? n.toFixed(2) : n.toFixed(0)) + " " + u[i]; };
   const expectedHashes = (t) => Number((1n << 256n) / (BigInt(t) + 1n));
@@ -219,10 +227,9 @@
       if (s[1]) { log("Mining is paused.", "a"); return stopMining(); }
       if (Number(s[2]) >= SUPPLY) { log("All 4,444 hoods are mined.", "a"); return stopMining(); }
       const t = await miner.targetFor(account);
-      const latest = await rp.getBlockNumber();
-      const blk = await rp.getBlock(latest - 1);
+      const cb = await chainBlock();
       jobId++;
-      job = { id: jobId, lastWork: s[6], blockHash: blk.hash, bn: latest - 1, target: t, targetHex: "0x" + BigInt(t).toString(16).padStart(64, "0"), madeAt: latest };
+      job = { id: jobId, lastWork: s[6], blockHash: cb.hash, bn: cb.bn, target: t, targetHex: "0x" + BigInt(t).toString(16).padStart(64, "0"), madeAt: cb.n };
       const st = s[8].toLowerCase() === account.toLowerCase() ? Number(s[9]) : 0;
       $("streak").textContent = st ? `${st} (×${2 ** Math.min(st, 6)} harder)` : "0";
       postJob();
@@ -240,6 +247,14 @@
       const hash = E.solidityPackedKeccak256(["address", "uint256", "bytes32", "bytes32"], [account, BigInt(f.nonce), j.lastWork, j.blockHash]);
       const t = await miner.targetFor(account);
       if (BigInt(hash) > t) { log("Find no longer valid. Next round.", "a"); return; }
+      for (let w = 0; w < 20; w++) {
+        const [cb, lmb] = await Promise.all([chainBlock(), miner.lastMintBlock()]);
+        if (cb.n > Number(lmb)) break;
+        if (w === 0) log("One hood per block: waiting for the next block…", "d");
+        await new Promise((r) => setTimeout(r, 2000));
+        const again = await miner.miningState();
+        if (again[6] !== j.lastWork) { log("Someone mined this hood first. Next round.", "a"); return; }
+      }
       log(`${who} found a hood! Confirm in your wallet.`, "g");
       const value = s[4];
       const est = await minerW.mint.estimateGas(BigInt(f.nonce), f.bn, { value });
@@ -264,8 +279,8 @@
   }
   setInterval(async () => {
     if (!mining || sending || !job) return;
-    const latest = await rp.getBlockNumber().catch(() => 0);
-    if (latest && latest - job.madeAt > 60) startJob();
+    const cb = await chainBlock().catch(() => null);
+    if (cb && cb.n - job.madeAt > 60) startJob();
   }, 10000);
   setInterval(() => {
     const now = performance.now(); rates = rates.filter((r) => now - r.t < 4000);
