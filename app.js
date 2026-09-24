@@ -113,30 +113,77 @@
     } catch (e) { console.warn(e); }
   }
 
-  let signer = null, account = null, minerW = null;
-  async function connect() {
-    if (!window.ethereum) { log("No wallet found. Open this site in a browser with a wallet.", "r"); return false; }
-    await window.ethereum.request({ method: "eth_requestAccounts" });
+  let signer = null, account = null, minerW = null, wp = null;
+  const wallets = new Map();
+  window.addEventListener("eip6963:announceProvider", (e) => { if (e.detail && e.detail.info) { wallets.set(e.detail.info.uuid, e.detail); renderWallets(); } });
+  window.dispatchEvent(new Event("eip6963:requestProvider"));
+  const modal = $("walletModal");
+  let pick = null;
+  function walletItems() {
+    const list = [...wallets.values()];
+    if (!list.length && window.ethereum) list.push({ info: { uuid: "injected", name: "Browser wallet", icon: "", rdns: "injected" }, provider: window.ethereum });
+    return list;
+  }
+  function renderWallets() {
+    const box = $("wmList"); box.innerHTML = "";
+    const list = walletItems();
+    if (!list.length) box.innerHTML = '<p class="wm-note">No browser wallet found on this device.</p>';
+    list.forEach((w) => {
+      const b = document.createElement("button");
+      b.className = "wm-item";
+      b.innerHTML = (w.info.icon ? `<img alt="" src="${w.info.icon}">` : '<span class="ic">👛</span>') + `<span>${esc(w.info.name)}</span>`;
+      b.onclick = () => { modal.close(); if (pick) pick(w); };
+      box.appendChild(b);
+    });
+    const here = location.href, host = location.host + location.pathname;
+    const links = [
+      ["MetaMask", "https://metamask.app.link/dapp/" + host],
+      ["Coinbase Wallet", "https://go.cb-w.com/dapp?cb_url=" + encodeURIComponent(here)],
+      ["Trust Wallet", "https://link.trustwallet.com/open_url?coin_id=60&url=" + encodeURIComponent(here)],
+      ["OKX Wallet", "https://www.okx.com/download?deeplink=" + encodeURIComponent("okx://wallet/dapp/url?dappUrl=" + encodeURIComponent(here))],
+    ];
+    $("wmMobile").innerHTML = links.map(([n, u]) => `<a class="wm-item" href="${u}" rel="noopener"><span class="ic">📱</span><span>${n}</span></a>`).join("");
+  }
+  $("wmClose").onclick = () => { modal.close(); if (pick) pick(null); };
+  function chooseWallet() {
+    return new Promise((res) => { pick = (w) => { pick = null; res(w); }; renderWallets(); modal.showModal(); });
+  }
+  async function useWallet(w, silent) {
+    wp = w.provider;
+    const accs = await wp.request({ method: silent ? "eth_accounts" : "eth_requestAccounts" });
+    if (!accs || !accs.length) return false;
     const hex = "0x" + cfg.chainId.toString(16);
-    const cur = await window.ethereum.request({ method: "eth_chainId" });
+    const cur = await wp.request({ method: "eth_chainId" });
     if (cur.toLowerCase() !== hex) {
-      try { await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hex }] }); }
+      if (silent) return false;
+      try { await wp.request({ method: "wallet_switchEthereumChain", params: [{ chainId: hex }] }); }
       catch (e) {
         if (e.code !== 4902) throw e;
-        await window.ethereum.request({ method: "wallet_addEthereumChain", params: [{ chainId: hex, chainName: cfg.chainName,
+        await wp.request({ method: "wallet_addEthereumChain", params: [{ chainId: hex, chainName: cfg.chainName,
           nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 }, rpcUrls: [cfg.rpc], blockExplorerUrls: [cfg.explorer] }] });
       }
     }
-    signer = await new E.BrowserProvider(window.ethereum).getSigner();
+    signer = await new E.BrowserProvider(wp).getSigner();
     account = await signer.getAddress();
     minerW = ready ? new E.Contract(cfg.miner, MINER_ABI, signer) : null;
     $("connectBtn").textContent = account.slice(0, 6) + "…" + account.slice(-4);
     $("mineBtn").disabled = !ready;
-    log("Wallet connected.", "g");
-    if (window.ethereum.on) { window.ethereum.on("accountsChanged", () => location.reload()); window.ethereum.on("chainChanged", () => location.reload()); }
+    try { localStorage.setItem("hoodz-wallet", w.info.rdns); } catch {}
+    if (wp.on) { wp.on("accountsChanged", () => location.reload()); wp.on("chainChanged", () => location.reload()); }
+    log("Wallet connected: " + w.info.name + ".", "g");
     loadMine(); refreshToken();
     return true;
   }
+  async function connect() {
+    const w = await chooseWallet();
+    if (!w) return false;
+    return useWallet(w, false);
+  }
+  setTimeout(() => {
+    let last = null; try { last = localStorage.getItem("hoodz-wallet"); } catch {}
+    const w = last && walletItems().find((x) => x.info.rdns === last);
+    if (w) useWallet(w, true).catch(() => {});
+  }, 600);
 
   const cores = navigator.hardwareConcurrency || 4;
   const gpuOk = !!(window.CatGpuMiner && window.CatGpuMiner.supported());
