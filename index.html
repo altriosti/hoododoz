@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HOODZ · you can't buy a hood, you mine one</title>
+<meta name="description" content="HOODZ: 4,444 hooded outlaws mined with proof of work on Robinhood Chain. Fully on-chain art.">
+<meta name="theme-color" content="#0f1a14">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏹</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f1a14; --panel:#16241c; --panel2:#1c2e23; --line:#2a3d31; --cream:#f3ead3; --mute:#a9b8a8;
+  --gold:#f2c14e; --red:#e5552b; --mint:#7dffb2; --sky:#8fc7ff; --violet:#b58cff;
+  --c-common:#2f8a57; --c-uncommon:#2f6fb3; --c-rare:#6a3fa0; --c-epic:#b3322b; --c-legendary:#dba72e; --c-genesis:#2b2f33;
+  --display:"Silkscreen", "JetBrains Mono", monospace;
+  --mono:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 70px);background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--cream);font:14px/1.6 var(--mono);-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(circle at 20% -10%,#1f3a2a 0,transparent 45%),radial-gradient(circle at 110% 20%,#2a2440 0,transparent 35%)}
+a{color:var(--gold)}
+button,input{font:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 18px 70px}
+
+.top{position:sticky;top:0;z-index:20;background:rgba(15,26,20,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top .in{max-width:1180px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.brand{font:700 22px var(--display);color:var(--cream);text-decoration:none;letter-spacing:1px}
+.brand span{color:var(--gold)}
+.nav{display:flex;gap:4px;flex-wrap:wrap;flex:1}
+.nav a{color:var(--mute);text-decoration:none;font:12px var(--display);padding:6px 10px;border-radius:4px}
+.nav a:hover{color:var(--cream);background:var(--panel2)}
+
+.btn{background:var(--panel2);color:var(--cream);border:1px solid var(--line);border-radius:6px;padding:10px 16px;cursor:pointer;min-height:42px}
+.btn:hover:not(:disabled){border-color:var(--gold)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.go{background:var(--gold);color:#1a1405;border-color:var(--gold);font-weight:700}
+.btn.red{color:#ffb4a0;border-color:#6b2a1c}
+.btn.sm{padding:6px 10px;min-height:34px;font-size:12px}
+
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:30px;align-items:center;padding:44px 0 26px}
+h1{font:700 clamp(58px,10vw,120px)/.9 var(--display);margin:0;letter-spacing:2px}
+h1 em{font-style:normal;color:var(--gold)}
+.lead{font-size:clamp(16px,2vw,20px);margin:16px 0 6px}
+.lead b{color:var(--gold)}
+.sub{color:var(--mute);margin:0 0 18px}
+.bar{height:14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;position:relative}
+.bar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--c-common),var(--gold));width:0}
+.bar b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--red)}
+.barlbl{display:flex;justify-content:space-between;color:var(--mute);font-size:12px;margin-top:6px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.stat .k{font:11px var(--display);color:var(--mute)}
+.stat .v{font:700 18px var(--mono);font-variant-numeric:tabular-nums}
+.showcase{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.showcase canvas{width:100%;aspect-ratio:1;image-rendering:pixelated;border-radius:8px;border:2px solid var(--line);background:var(--panel)}
+
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:26px 0 40px;padding:0;list-style:none;counter-reset:s}
+.steps li{counter-increment:s;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px}
+.steps li::before{content:counter(s);font:700 26px var(--display);color:var(--gold);display:block;line-height:1;margin-bottom:6px}
+.steps b{font-family:var(--display);font-size:13px}
+.steps p{margin:4px 0 0;color:var(--mute);font-size:13px}
+
+section{margin-bottom:46px}
+h2{font:700 26px var(--display);margin:0 0 4px}
+h2 small{font:400 13px var(--mono);color:var(--mute);margin-left:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
+.grid2{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.rig{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.opts{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:10px 0 14px;color:var(--mute)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{background:transparent;color:var(--mute);border:0;padding:8px 14px;cursor:pointer}
+.seg button.on{background:var(--gold);color:#1a1405;font-weight:700}
+.seg button:disabled{opacity:.35}
+input[type=range]{accent-color:var(--gold);width:140px}
+.log{background:#0a120d;border:1px solid var(--line);border-radius:8px;height:210px;overflow:auto;padding:10px 12px;font-size:12.5px;line-height:1.55}
+.log .g{color:var(--mint)} .log .r{color:#ff8f7a} .log .a{color:var(--gold)} .log .d{color:#6f8a78}
+.race{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tile{background:var(--panel2);border:2px solid var(--line);border-radius:8px;padding:6px;text-align:center;font-size:11px;color:var(--mute)}
+.tile canvas{width:100%;aspect-ratio:1;image-rendering:pixelated;display:block;border-radius:4px;margin-bottom:4px}
+.tile.t0{border-color:var(--c-common)} .tile.t1{border-color:var(--c-uncommon)} .tile.t2{border-color:var(--c-rare)}
+.tile.t3{border-color:var(--c-epic)} .tile.t4{border-color:var(--c-legendary)} .tile.t5{border-color:var(--gold);box-shadow:0 0 12px rgba(242,193,78,.5)}
+.tile.sel{outline:3px solid var(--cream);outline-offset:1px}
+.tile .st{color:var(--mint)}
+.mine{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-top:12px}
+.mine .tile{cursor:pointer}
+.empty{grid-column:1/-1;border:1px dashed var(--line);border-radius:8px;padding:26px;text-align:center;color:var(--mute)}
+.kv{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+.hint{color:var(--mute);font-size:12.5px;margin:8px 0 0}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{color:var(--mute);font:11px var(--display)}
+tr.now td{background:#2b2715;color:var(--gold)}
+.tw{overflow-x:auto}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+details{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:8px}
+summary{cursor:pointer;font-weight:700}
+details p{color:var(--mute);margin:8px 0 0}
+footer{border-top:1px solid var(--line);padding-top:18px;color:var(--mute);font-size:12px;display:flex;gap:14px;flex-wrap:wrap;justify-content:space-between}
+@media (max-width:900px){.hero,.grid2,.split{grid-template-columns:1fr}.steps{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}.kv{grid-template-columns:1fr 1fr}}
+@media (max-width:520px){.steps{grid-template-columns:1fr}.rig{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <a class="brand" href="#">HOOD<span>Z</span></a>
+  <nav class="nav" aria-label="Sections"><a href="#mine">Mine</a><a href="#collection">Collection</a><a href="#staking">Staking</a><a href="#token">$HOODZ</a><a href="#how">How it works</a></nav>
+  <button class="btn" id="connectBtn">Connect wallet</button>
+</div></header>
+
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <h1>HOOD<em>Z</em></h1>
+      <p class="lead">You can't buy a hood. <b>You mine one.</b></p>
+      <p class="sub">Proof-of-work NFT mining on Robinhood Chain · 4,444 outlaws · art lives on-chain.</p>
+      <div class="bar" aria-label="Mined out of 4444"><i id="progBar"></i><b style="left:9.09%" title="#404 opens $HOODZ trading"></b></div>
+      <div class="barlbl"><span id="progTxt">0 / 4,444 mined</span><span>#404 opens $HOODZ trading</span></div>
+      <div class="stats">
+        <div class="stat"><div class="k">MINTED</div><div class="v" id="sMinted">—</div></div>
+        <div class="stat"><div class="k">EPOCH</div><div class="v" id="sEpoch">—</div></div>
+        <div class="stat"><div class="k">PRICE</div><div class="v" id="sPrice">—</div></div>
+        <div class="stat"><div class="k">DIFFICULTY</div><div class="v" id="sDiff">—</div></div>
+      </div>
+    </div>
+    <div class="showcase" aria-hidden="true" id="showcase"></div>
+  </div>
+
+  <ol class="steps">
+    <li><b>CONNECT</b><p>A wallet on Robinhood Chain with a little ETH. A hood costs <span id="stepPrice">0.002</span> ETH now; gas is a fraction of a cent.</p></li>
+    <li><b>MINE</b><p>Press Start. Your CPU or GPU searches for a winning number. GPU (Chrome, Edge) is far faster.</p></li>
+    <li><b>WIN</b><p>Find one first and confirm in your wallet. Your hood is revealed on the spot.</p></li>
+    <li><b>EARN</b><p>Stake it for a share of every later mint, or burn it for $HOODZ.</p></li>
+  </ol>
+
+  <section id="mine">
+    <h2>THE RIG <small id="rigState">idle</small></h2>
+    <div class="grid2">
+      <div class="card">
+        <div class="rig">
+          <div class="stat"><div class="k">HASHRATE</div><div class="v" id="rate">0 H/s</div></div>
+          <div class="stat"><div class="k">EXPECTED</div><div class="v" id="expected">—</div></div>
+          <div class="stat"><div class="k">STREAK</div><div class="v" id="streak">—</div></div>
+        </div>
+        <div class="opts">
+          <span>MINE WITH</span>
+          <div class="seg" role="group" aria-label="Mine with"><button id="useCpu">CPU</button><button id="useGpu" class="on">GPU</button></div>
+          <label>USAGE <input type="range" id="usage" min="25" max="100" step="25" value="75"> <b id="usageVal">75%</b></label>
+          <label><input type="checkbox" id="keepMining" checked> keep mining after a win</label>
+        </div>
+        <div class="row"><button class="btn go" id="mineBtn" disabled>Start mining</button><button class="btn" id="stopBtn" disabled>Stop</button></div>
+        <p class="hint" id="gpuNote"></p>
+        <div class="log" id="log" aria-live="polite"></div>
+      </div>
+      <div class="card">
+        <h2 style="font-size:18px">LIVE RACE <small>latest hoods</small></h2>
+        <div class="race" id="race"><div class="empty">No hoods mined yet. The first one is waiting.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="collection">
+    <h2>YOUR HOODZ <small>tap to select</small></h2>
+    <div class="card">
+      <div class="row">
+        <span id="selInfo" style="color:var(--mute)">Nothing selected</span>
+      </div>
+      <div class="mine" id="myGrid"><div class="empty">Connect your wallet to see your hoods.</div></div>
+    </div>
+  </section>
+
+  <section id="staking">
+    <h2>STAKING <small>65% of every mint goes to staked hoods</small></h2>
+    <div class="card">
+      <div class="kv">
+        <div class="stat"><div class="k">TOTAL WEIGHT</div><div class="v" id="kWeight">—</div></div>
+        <div class="stat"><div class="k">YOUR RENT</div><div class="v" id="kRent">—</div></div>
+        <div class="stat"><div class="k">YOUR STAKED</div><div class="v" id="kStaked">—</div></div>
+      </div>
+      <div class="row">
+        <button class="btn" data-term="0">Stake 7 days · 1×</button>
+        <button class="btn" data-term="1">Stake 14 days · 2×</button>
+        <button class="btn" data-term="2">Stake 30 days · 4×</button>
+        <button class="btn" id="unstakeBtn">Unstake</button>
+        <button class="btn go" id="claimBtn">Claim rent</button>
+      </div>
+      <p class="hint">Pick hoods above, then choose a term. Staked hoods can't be sold or moved and there is no early exit. When the term ends they keep earning until you unstake.</p>
+    </div>
+  </section>
+
+  <section id="token">
+    <h2>$HOODZ <small>the token of the collection</small></h2>
+    <div class="card">
+      <div class="kv">
+        <div class="stat"><div class="k">TRADING FEE</div><div class="v" id="tFee">—</div></div>
+        <div class="stat"><div class="k">SUPPLY</div><div class="v" id="tSupply">—</div></div>
+        <div class="stat"><div class="k">BOUGHT BACK + BURNED</div><div class="v" id="tBurned">—</div></div>
+        <div class="stat"><div class="k">BUYBACK QUEUE</div><div class="v" id="tQueue">—</div></div>
+        <div class="stat"><div class="k">HOODS BURNED</div><div class="v" id="tHoods">—</div></div>
+        <div class="stat"><div class="k">YOUR $HOODZ</div><div class="v" id="tMine">—</div></div>
+      </div>
+      <div class="row">
+        <a class="btn" id="tradeLink" href="#" target="_blank" rel="noopener">Trade on Uniswap ↗</a>
+        <button class="btn" id="runBuyback">Run buyback</button>
+        <button class="btn red" id="burnBtn">Burn selected for $HOODZ</button>
+      </div>
+      <p class="hint">Trading opens the moment hood #404 is mined. 25% of every mint and the 5% resale royalty buy $HOODZ back and burn it, automatically every 50 mints; anyone can also press Run buyback. Burning opens with #404: a hood from the current epoch returns 200 $HOODZ, older ones return less, halving with every epoch. A hood must be at least 10 minutes old and unstaked.</p>
+    </div>
+  </section>
+
+  <section id="how">
+    <h2>HOW IT WORKS</h2>
+    <div class="split">
+      <div class="card">
+        <h3 style="font-family:var(--display);margin-top:0">EPOCHS AND PRICE</h3>
+        <div class="tw"><table><thead><tr><th>EPOCH</th><th>HOODS</th><th>PRICE</th></tr></thead><tbody id="epochs"></tbody></table></div>
+      </div>
+      <div class="card">
+        <h3 style="font-family:var(--display);margin-top:0">WHERE THE ETH GOES</h3>
+        <table><tbody>
+          <tr><td>Rent to staked hoods</td><td>65%</td></tr>
+          <tr><td>Buyback and burn of $HOODZ</td><td>25%</td></tr>
+          <tr><td>Builders</td><td>10%</td></tr>
+        </tbody></table>
+        <p class="hint">While nothing is staked, the stakers' share goes to the buyback too. Resales pay a 5% royalty.</p>
+        <h3 style="font-family:var(--display)">$HOODZ</h3>
+        <p class="hint">1,000,000 at launch: 950,000 locked in the Uniswap pool forever, 50,000 with the team. After that, $HOODZ is only created by burning a hood and only destroyed by the buyback. The fee starts at 50% when trading opens and falls to 5% over ten minutes.</p>
+        <h3 style="font-family:var(--display)">RARITY</h3>
+        <p class="hint">1 Genesis · 36 Legendary · 180 Epic · 480 Rare · 1,040 Uncommon · 2,707 Common. Your hood is drawn from the ones nobody has got yet.</p>
+      </div>
+    </div>
+    <div style="margin-top:16px">
+      <details><summary>CPU or GPU?</summary><p>GPU, if your browser offers it (Chrome and Edge do). A graphics card tries hundreds of times more numbers per second. CPU still works and the target eases off by itself when the field goes quiet. Keep the tab open while you mine.</p></details>
+      <details><summary>Why did my solution stop working?</summary><p>Someone else minted first. Every hood is chained to the one before it, so when anyone mints, every search starts again on the new one. The site checks every find before your wallet opens, so nothing is spent.</p></details>
+      <details><summary>Why does the difficulty change?</summary><p>It aims for one hood every 10 seconds, retargets every 8 mints, halves after every 5 idle minutes, and gets harder for a miner who wins several in a row.</p></details>
+      <details><summary>What does the team get?</summary><p>10% of every mint, the 5% trading fee on $HOODZ and 50,000 $HOODZ at launch. The pool's liquidity has no way out. The contracts include an owner-only emergency withdraw and pause for mint, for safety only.</p></details>
+    </div>
+  </section>
+
+  <footer><div id="links"></div><div>4,444 hoods · proof of work · Robinhood Chain</div></footer>
+</div>
+
+<script src="vendor/ethers.umd.min.js"></script>
+<script src="config.js"></script>
+<script src="rpc.js"></script>
+<script src="art.js"></script>
+<script src="hoodz-core.js"></script>
+<script src="gpu-miner.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
