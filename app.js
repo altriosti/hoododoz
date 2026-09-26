@@ -47,7 +47,27 @@
     while ($("log").children.length > 150) $("log").firstChild.remove();
     $("log").scrollTop = 1e9;
   }
-  function errMsg(e) { return (e && (e.shortMessage || e.reason || e.message)) || "failed"; }
+  const EXTRA = new E.Interface([
+    "error ERC721InvalidReceiver(address)", "error ERC721InvalidSender(address)", "error ERC721NonexistentToken(uint256)",
+    "error ERC721IncorrectOwner(address,uint256,address)", "error ERC721InsufficientApproval(address,uint256)",
+    "error OwnableUnauthorizedAccount(address)", "error Panic(uint256)", "error Error(string)"]);
+  function revertData(e) {
+    const c = [e && e.data, e && e.info && e.info.error && e.info.error.data, e && e.error && e.error.data,
+      e && e.info && e.info.error && e.info.error.data && e.info.error.data.data, e && e.error && e.error.data && e.error.data.data];
+    for (const d of c) if (typeof d === "string" && d.startsWith("0x") && d.length >= 10) return d;
+    const m = String((e && e.message) || "").match(/0x[0-9a-fA-F]{8,}/);
+    return m ? m[0] : null;
+  }
+  function errMsg(e) {
+    const d = revertData(e);
+    if (d) {
+      for (const iface of [new E.Interface(MINER_ABI), EXTRA]) {
+        try { const p = iface.parseError(d); if (p) return p.name + (p.args.length ? "(" + p.args.join(", ") + ")" : ""); } catch {}
+      }
+      return "reverted with " + d.slice(0, 10) + (d.length > 10 ? " (" + d.length + " chars)" : "");
+    }
+    return (e && (e.shortMessage || e.reason || e.message)) || "failed";
+  }
 
   const sc = $("showcase");
   [0, 1, 2, 3, 4, 5].forEach(() => { const c = document.createElement("canvas"); c.width = 24; c.height = 24; sc.appendChild(c); });
@@ -346,6 +366,6 @@
   if (cfg.token) $("tradeLink").href = `https://app.uniswap.org/swap?chain=robinhood&inputCurrency=NATIVE&outputCurrency=${cfg.token}`;
   $("links").innerHTML = ready ? [["HOODZ", cfg.miner], ["$HOODZ", cfg.token], ["Buyback", cfg.buyback], ["Locker", cfg.locker]]
     .filter((x) => x[1]).map(([n, a]) => `<a href="${cfg.explorer}/address/${a}" target="_blank" rel="noopener">${n}</a>`).join(" · ") : "";
-  log(gpuOk ? "Rig ready. GPU available." : "Rig ready. CPU mining.", "a");
+  log((gpuOk ? "Rig ready. GPU available." : "Rig ready. CPU mining.") + " (build 4)", "a");
   if (ready) { refresh(); setInterval(refresh, 5000); } else log("Contracts are not set yet.", "r");
 })();
